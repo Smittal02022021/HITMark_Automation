@@ -1,0 +1,24 @@
+{
+  "name": "playwright-automation-framework",
+  "version": "1.0.0",
+  "description": "Playwright + TypeScript automation framework with Smoke and Regression suites",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/smoke",
+    "test:regression": "playwright test tests/regression",
+    "test:smoke:headed": "playwright test tests/smoke --headed",
+    "test:regression:headed": "playwright test tests/regression --headed",
+    "test:smoke:chromium": "playwright test tests/smoke --project=chromium",
+    "test:regression:chromium": "playwright test tests/regression --project=chromium",
+    "test:tag:smoke": "playwright test --grep @smoke",
+    "test:tag:regression": "playwright test --grep @regression",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@types/node": "latest",
+    "dotenv": "latest",
+    "typescript": "latest"
+  }
+}
