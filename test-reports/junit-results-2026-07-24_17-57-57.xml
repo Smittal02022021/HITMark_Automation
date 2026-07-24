@@ -1,0 +1,10 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="10.116318999999999">
+<testsuite name="smoke/login.smoke.spec.ts" timestamp="2026-07-24T12:28:16.807Z" hostname="chromium" tests="1" failures="0" skipped="0" time="9.053" errors="0">
+<testcase name="Smoke: Login › user can log in with valid credentials @smoke" classname="smoke/login.smoke.spec.ts" time="9.053">
+<system-out>
+<![CDATA[Login successful for user: smittal
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

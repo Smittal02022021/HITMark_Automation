@@ -1,0 +1,8 @@
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="12.873617000000001">
+<testsuite name="regression/login.regression.spec.ts" timestamp="2026-07-24T12:30:16.340Z" hostname="chromium" tests="2" failures="0" skipped="0" time="12.457" errors="0">
+<testcase name="Regression: Login › shows error for invalid credentials @regression" classname="regression/login.regression.spec.ts" time="7.096">
+</testcase>
+<testcase name="Regression: Login › shows validation error for empty fields @regression" classname="regression/login.regression.spec.ts" time="5.361">
+</testcase>
+</testsuite>
+</testsuites>
