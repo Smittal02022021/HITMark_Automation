@@ -25,7 +25,7 @@ jobs:
           AZURE_DEVOPS_PAT: ${{ secrets.PERSONAL_AZURE_DEVOPS_PAT }}
           AZURE_DEVOPS_REPO: ${{ secrets.PERSONAL_AZURE_DEVOPS_REPO }}
         run: |
-          git remote add ado https://:${AZURE_DEVOPS_PAT}@${AZURE_DEVOPS_REPO#https://}
+          git remote add ado https://:${PERSONAL_AZURE_DEVOPS_PAT}@${PERSONAL_AZURE_DEVOPS_REPO#https://}
 
       - name: Push to Azure DevOps
         run: |
