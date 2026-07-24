@@ -30,4 +30,4 @@ jobs:
 
       - name: Push to Azure DevOps
         run: |
-          git push ado main
+          git push ado main --force
