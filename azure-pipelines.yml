@@ -3,10 +3,10 @@ trigger: none
 resources:
   pipelines:
     - pipeline: appDeployment
-      source: '<APP-DEPLOYMENT-PIPELINE-NAME>'
+      source: 'HITMark-App-Dummy-Deploy'
       trigger:
         stages:
-          - '<DEV-DEPLOY-STAGE-NAME>'
+          - 'DeployDev'
 
 pool:
   vmImage: 'ubuntu-latest'
