@@ -1,0 +1,51 @@
+trigger: none
+
+resources:
+  pipelines:
+    - pipeline: appDeployment
+      source: '<APP-DEPLOYMENT-PIPELINE-NAME>'
+      trigger:
+        stages:
+          - '<DEV-DEPLOY-STAGE-NAME>'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: 'HITMark-Dev-Secrets'
+  - name: CI
+    value: 'true'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Install Node.js'
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: npx playwright install --with-deps chromium
+    displayName: 'Install Chromium (smoke suite runs Chromium-only for speed)'
+
+  - script: npm run test:smoke:chromium
+    displayName: 'Run smoke suite'
+    env:
+      BASE_URL: $(BASE_URL)
+      TEST_USERNAME: $(TEST_USERNAME)
+      TEST_PASSWORD: $(TEST_PASSWORD)
+
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-reports/*.xml'
+      failTaskOnFailedTests: true
+    displayName: 'Publish results to ADO Tests tab'
+
+  - task: PublishPipelineArtifact@1
+    condition: always()
+    inputs:
+      targetPath: 'playwright-report'
+      artifact: 'playwright-html-report'
+    displayName: 'Publish HTML report'
