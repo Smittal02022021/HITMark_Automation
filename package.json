@@ -13,12 +13,14 @@
     "test:tag:smoke": "playwright test --grep @smoke",
     "test:tag:regression": "playwright test --grep @regression",
     "report": "playwright show-report",
-    "codegen": "playwright codegen"
+    "codegen": "playwright codegen",
+    "send-report-email": "node scripts/send-report-email.js"
   },
   "devDependencies": {
     "@playwright/test": "latest",
     "@types/node": "latest",
     "dotenv": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "@sendgrid/mail": "latest"
   }
 }

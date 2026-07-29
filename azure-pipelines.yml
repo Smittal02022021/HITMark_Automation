@@ -49,3 +49,11 @@ steps:
       targetPath: 'playwright-report'
       artifact: 'playwright-html-report'
     displayName: 'Publish HTML report'
+
+  - script: npm run send-report-email
+    condition: always()
+    displayName: 'Email test report'
+    env:
+      SENDGRID_API_KEY: $(SENDGRID_API_KEY)
+      REPORT_EMAIL_TO: $(REPORT_EMAIL_TO)
+      REPORT_EMAIL_FROM: $(REPORT_EMAIL_FROM)
