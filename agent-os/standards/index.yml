@@ -1,2 +1,22 @@
 # Agent OS Standards Index
 
+testing:
+  actions-as-methods:
+    description: User-facing actions belong as async page object methods, not inline Playwright calls in specs
+  ci-env-var:
+    description: "CI: true must be set explicitly in Azure Pipelines - not auto-set like GitHub Actions"
+  data-source-split:
+    description: Rule for choosing testData.ts (secrets, shared) vs test-data/*.json (non-secret, per-module)
+  final-screenshot-fixture:
+    description: Auto-fixture capturing a full-page screenshot after every test, pass or fail
+  fixture-registration:
+    description: 3-step checklist for registering a new page object in base.fixture.ts
+  goto-path-convention:
+    description: goto() must never use a leading slash - baseURL points at a specific page, not the domain root
+  pipeline-always-condition:
+    description: "condition: always() required on every result-publishing/reporting pipeline step"
+  report-output-isolation:
+    description: Timestamped, isolated HTML report/JUnit output per run so runs never overwrite or get wiped
+  wait-helpers:
+    description: Wait vs isVisible helpers on BasePage - required vs optional element checks
+
