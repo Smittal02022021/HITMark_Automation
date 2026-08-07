@@ -1,9 +1,7 @@
 name: Sync GitHub to Azure DevOps
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   sync:
