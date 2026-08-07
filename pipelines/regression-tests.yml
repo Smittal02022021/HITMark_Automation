@@ -1,10 +1,21 @@
 trigger: none
 
+parameters:
+  - name: targetEnv
+    displayName: 'Target Environment'
+    type: string
+    default: 'qa'
+    values:
+      - dev
+      - qa
+      - uat
+      - prod
+
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: 'HITMark-Dev-Secrets'
+  - group: 'HITMark-${{ parameters.targetEnv }}-Secrets'
   - name: CI
     value: 'true'
 
@@ -21,8 +32,9 @@ steps:
     displayName: 'Install Chromium'
 
   - script: npm run test:regression:chromium
-    displayName: 'Run regression suite'
+    displayName: 'Run regression suite against ${{ parameters.targetEnv }}'
     env:
+      TEST_ENV: ${{ parameters.targetEnv }}
       BASE_URL: $(BASE_URL)
       TEST_USERNAME: $(TEST_USERNAME)
       TEST_PASSWORD: $(TEST_PASSWORD)

@@ -11,7 +11,7 @@ its own conventions.
 
 ```
 pages/            Page Object classes (one file per screen/module)
-tests/smoke/       Fast, critical-path tests - run on every Dev deployment
+tests/smoke/       Fast, critical-path tests - run on every qa deployment
 tests/regression/  Broader coverage - edge cases, negative paths, scheduled runs
 fixtures/          base.fixture.ts - the ONLY place page objects get registered
 utils/             Reusable helpers (data loading, reconciliation, etc.)

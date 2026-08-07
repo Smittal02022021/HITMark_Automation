@@ -6,7 +6,7 @@ import * as path from 'path';
  * Loads .env.<TEST_ENV> - defaults to .env.dev if TEST_ENV is not set.
  * Run with e.g.  TEST_ENV=staging npm run test:smoke
  */
-const env = process.env.TEST_ENV || 'dev';
+const env = process.env.TEST_ENV || 'qa';
 dotenv.config({ path: path.resolve(__dirname, `.env.${env}`) });
 
 /**

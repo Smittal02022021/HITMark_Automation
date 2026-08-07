@@ -1,8 +1,8 @@
 # Playwright Automation Framework (TypeScript)
 
 A Playwright + TypeScript framework with tests organised into **Smoke** and
-**Regression** suites, a Page Object Model structure, and config that's
-ready to plug into Azure DevOps pipelines later.
+**Regression** suites, a Page Object Model structure, and Azure DevOps
+pipelines wired in for CI execution across multiple environments.
 
 ---
 
@@ -30,34 +30,36 @@ automatically the first time you open the folder.
 ## 2. Project setup
 
 1. Unzip this project and open it in VS Code:
-   ```bash
+```bash
    cd path/to/playwright-automation-framework
    code .
-   ```
+```
 
 2. Install dependencies:
-   ```bash
+```bash
    npm install
-   ```
+```
 
 3. Install Playwright's browser binaries:
-   ```bash
+```bash
    npx playwright install
-   ```
+```
 
 4. Set up your environment file:
-   ```bash
-   cp .env.example .env.dev
-   ```
-   Then edit `.env.dev` and set `BASE_URL` to your new web application's
-   dev URL, plus any test credentials.
+```bash
+   cp .env.example .env.qa
+```
+   Then edit `.env.qa` and set `BASE_URL` to your QA environment's URL,
+   plus any test credentials. Create additional files the same way as more
+   environments come online — `.env.uat`, `.env.prod`, etc. — following the
+   same variable names as `.env.example`.
 
 5. Sanity check - run the smoke suite:
-   ```bash
+```bash
    npm run test:smoke
-   ```
+```
    You'll see it fail against the placeholder LoginPage locators - that's
-   expected until you point it at your real app (see step 3 below).
+   expected until you point it at your real app (see step 4 below).
 
 ---
 
@@ -66,29 +68,35 @@ automatically the first time you open the folder.
 ```
 playwright-automation-framework/
 ├── tests/
-│   ├── smoke/            # fast, critical-path checks - run on every build
-│   └── regression/       # broader coverage - run on a schedule / pre-release
-├── pages/                # Page Object Model classes
-│   ├── BasePage.ts       # shared behaviour all pages inherit
-│   └── LoginPage.ts      # example - replace with your app's pages
+│ ├── smoke/ # fast, critical-path checks - run on every build
+│ └── regression/ # broader coverage - run on a schedule / pre-release
+├── pages/ # Page Object Model classes
+│ ├── BasePage.ts # shared behaviour all pages inherit
+│ └── LoginPage.ts # example - replace with your app's pages
 ├── fixtures/
-│   └── base.fixture.ts   # injects page objects into tests via `test`
+│ └── base.fixture.ts # injects page objects into tests via test
 ├── utils/
-│   └── testData.ts       # centralised test data / credentials
-├── playwright.config.ts  # projects, reporters, timeouts, env loading
+│ └── testData.ts # centralised test data / credentials
+├── pipelines/
+│ ├── smoke-tests.yml # ADO pipeline - triggers off dev/QA deploy
+│ └── regression-tests.yml # ADO pipeline - manual trigger only
+├── playwright.config.ts # projects, reporters, timeouts, env loading
 ├── tsconfig.json
-├── .env.example          # template - copy to .env.dev / .env.staging etc.
+├── .env.example # template - copy to .env.qa / .env.uat / .env.prod etc.
 └── package.json
 ```
 
 ### Why both folders AND tags?
 Tests live in `tests/smoke` or `tests/regression` by folder - that's the
-primary split you asked for, and it's easy to reason about in VS Code's
-file explorer and Test Explorer.
+primary split, and it's easy to reason about in VS Code's file explorer and
+Test Explorer. This is also what the ADO pipelines run off of directly
+(`tests/smoke`, `tests/regression`).
 
-Each test title also carries an `@smoke` or `@regression` tag. You don't
-need this today, but it means if a test ever needs to belong to *both*
-suites, you can `--grep` for it instead of duplicating the file:
+Each test title can also carry an `@smoke` or `@regression` tag via the
+`test:tag:smoke` / `test:tag:regression` scripts, in case a test ever needs
+to belong to *both* suites without duplicating the file. These aren't
+currently used by the ADO pipelines (which run by folder), but are kept
+available:
 ```bash
 npm run test:tag:smoke
 npm run test:tag:regression
@@ -115,15 +123,18 @@ npm run test:tag:regression
 |---|---|
 | `npm run test:smoke` | Runs only the smoke suite (all browsers) |
 | `npm run test:regression` | Runs only the regression suite (all browsers) |
-| `npm run test:smoke:chromium` | Smoke suite, Chromium only (fastest for local dev) |
+| `npm run test:smoke:chromium` | Smoke suite, Chromium only (fastest, used by CI) |
+| `npm run test:regression:chromium` | Regression suite, Chromium only (used by CI) |
 | `npm run test:smoke:headed` | Smoke suite with visible browser |
 | `npm run test:tag:smoke` | Runs anything tagged `@smoke`, regardless of folder |
 | `npm run report` | Opens the last HTML report |
 | `npm run codegen` | Opens Playwright's recorder to generate locators/actions |
 
-Run against a different environment:
+Run against a different environment locally by setting `TEST_ENV` - this
+loads the matching `.env.<name>` file (defaults to `qa` if unset):
 ```bash
-TEST_ENV=staging npm run test:regression   # loads .env.staging
+TEST_ENV=uat npm run test:regression   # loads .env.uat
+TEST_ENV=prod npm run test:smoke       # loads .env.prod
 ```
 
 ---
@@ -140,19 +151,40 @@ set breakpoints directly in `.spec.ts` files.
 ## 7. Reporting
 
 `playwright.config.ts` already has:
-- **HTML reporter** - local, visual report with traces/screenshots/video on failure
-- **JUnit reporter** (`test-results/junit-results.xml`) - this is the format
-  Azure DevOps's "Publish Test Results" pipeline task expects, so no config
-  changes will be needed there later.
+- **HTML reporter** - visual report with traces/screenshots/video on
+  failure, saved to `playwright-report/<run-timestamp>/` so past runs are
+  never overwritten
+- **JUnit reporter** (`test-reports/junit-results-<run-timestamp>.xml`) -
+  consumed by ADO's `PublishTestResults@2` task to populate the pipeline's
+  Tests tab
+- **List reporter** - plain pass/fail output in the terminal / CI log
 
 ---
 
-## 8. Next step: Azure DevOps
+## 8. Azure DevOps pipelines
 
-Not set up yet, by design - once your app is stable enough to test and this
-framework has real coverage, we'll add an `azure-pipelines.yml` that:
-- runs `npm ci` + `npx playwright install --with-deps`
-- runs `test:smoke` on every PR/build, `test:regression` on a schedule or pre-release
-- publishes the JUnit results and HTML report as pipeline artifacts
+Two pipelines live in `pipelines/`, both parameterised by target
+environment (`dev` / `qa` / `uat` / `prod`, defaulting to `qa`):
 
-Just say the word when you're ready for that piece.
+- **`smoke-tests.yml`** - intended to trigger automatically once the app's
+  Dev/QA deployment pipeline completes (via `resources.pipelines`). Can
+  also be run manually against any environment.
+- **`regression-tests.yml`** - manual trigger only (`trigger: none`) - run
+  on demand from the ADO Pipelines UI, not tied to any deployment.
+
+Both pipelines:
+- Install Node.js + dependencies + Chromium
+- Run the relevant suite via `test:smoke:chromium` / `test:regression:chromium`
+- Publish JUnit results to the ADO Tests tab and the HTML report as a
+  pipeline artifact
+- Email a test report via SendGrid
+
+Each environment has its own ADO variable group
+(`HITMark-<Env>-Secrets`), so `BASE_URL` / `TEST_USERNAME` / `TEST_PASSWORD`
+resolve automatically based on the environment selected at run time - no
+YAML changes needed to point a run at a different environment.
+
+**Known open item:** `smoke-tests.yml`'s trigger still references
+placeholder values (`source`, `stage`) for the app's deployment pipeline -
+these need to be swapped for the real pipeline name and stage identifier
+once that pipeline exists in the client's ADO project.

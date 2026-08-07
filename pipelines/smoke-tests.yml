@@ -1,5 +1,16 @@
 trigger: none
 
+parameters:
+  - name: targetEnv
+    displayName: 'Target Environment'
+    type: string
+    default: 'qa'
+    values:
+      - dev
+      - qa
+      - uat
+      - prod
+
 resources:
   pipelines:
     - pipeline: appDeployment
@@ -12,7 +23,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: 'HITMark-Dev-Secrets'
+  - group: 'HITMark-${{ parameters.targetEnv }}-Secrets'   # resolves to HITMark-Dev-Secrets, HITMark-QA-Secrets, etc.
   - name: CI
     value: 'true'
 
@@ -29,8 +40,9 @@ steps:
     displayName: 'Install Chromium (smoke suite runs Chromium-only for speed)'
 
   - script: npm run test:smoke:chromium
-    displayName: 'Run smoke suite'
+    displayName: 'Run smoke suite against ${{ parameters.targetEnv }}'
     env:
+      TEST_ENV: ${{ parameters.targetEnv }}
       BASE_URL: $(BASE_URL)
       TEST_USERNAME: $(TEST_USERNAME)
       TEST_PASSWORD: $(TEST_PASSWORD)
