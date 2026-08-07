@@ -34,7 +34,7 @@ test.describe('Regression: Login', () => {
     await expect(loginPage.errorMessage).toBeVisible();
   });
 
-  test('user can log in with valid credentials @smoke', async ({ page, loginPage }) => {
+  test('user can log in with valid credentials @regression', async ({ page, loginPage }) => {
     await loginPage.goto('');
     await loginPage.login(users.validUser.username, users.validUser.password);
     await expect(page).toHaveURL(/Technossus_HITMark/);
