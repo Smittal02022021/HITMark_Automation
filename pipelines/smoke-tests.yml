@@ -1,0 +1,59 @@
+trigger: none
+
+resources:
+  pipelines:
+    - pipeline: appDeployment
+      source: 'HITMark-App-Dummy-Deploy'   # ⚠️ placeholder — swap for real ADO deploy pipeline name once it exists
+      trigger:
+        stages:
+          - 'DeployDev'                     # ⚠️ placeholder — swap for real stage identifier once it exists
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: 'HITMark-Dev-Secrets'
+  - name: CI
+    value: 'true'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Install Node.js'
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: npx playwright install --with-deps chromium
+    displayName: 'Install Chromium (smoke suite runs Chromium-only for speed)'
+
+  - script: npm run test:smoke:chromium
+    displayName: 'Run smoke suite'
+    env:
+      BASE_URL: $(BASE_URL)
+      TEST_USERNAME: $(TEST_USERNAME)
+      TEST_PASSWORD: $(TEST_PASSWORD)
+
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-reports/*.xml'
+      failTaskOnFailedTests: true
+    displayName: 'Publish results to ADO Tests tab'
+
+  - task: PublishPipelineArtifact@1
+    condition: always()
+    inputs:
+      targetPath: 'playwright-report'
+      artifact: 'playwright-html-report'
+    displayName: 'Publish HTML report'
+
+  - script: npm run send-report-email
+    condition: always()
+    displayName: 'Email test report'
+    env:
+      SENDGRID_API_KEY: $(SENDGRID_API_KEY)
+      REPORT_EMAIL_TO: $(REPORT_EMAIL_TO)
+      REPORT_EMAIL_FROM: $(REPORT_EMAIL_FROM)
